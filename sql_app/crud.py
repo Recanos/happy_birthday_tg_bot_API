@@ -26,23 +26,25 @@ def get_users(db: Session, skip: int = 0, limit: int = 100) -> list[models.User]
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
-def get_users_with_happy_birthday(db: Session, telegram_id: int | None = None, skip: int = 0, limit: int = 100) -> list[models.User]:
-    today = datetime.today().utcnow()
-    print(today)
-    if telegram_id is None:
-        return db.query(models.User).filter(
-            extract('day', models.User.date_of_birth) == today.day,
-            extract('month', models.User.date_of_birth) == today.month
-        ).offset(skip).limit(limit).all()
-    # else:
-    #     list_needed_ids = db.query(models.Subscription).filter(
-    #         models.Subscription.subscriber_id == telegram_id
-    #     ).all()
-    #     print(list_needed_ids)
-    #     return list_needed_ids.filter(
-    #         extract('day', models.User.date_of_birth) == today.day,
-    #         extract('month', models.User.date_of_birth) == today.month
-    #     ).offset(skip).limit(limit).all()
+def get_users_with_happy_birthday(db: Session, telegram_id: int | None = None, skip: int = 0, limit: int = 100) -> list[
+    models.User]:
+    today = datetime.utcnow()
+
+    birthday_query = db.query(models.User).filter(
+        extract('day', models.User.date_of_birth) == today.day,
+        extract('month', models.User.date_of_birth) == today.month
+    )
+
+    if telegram_id is not None:
+        # Подзапрос для получения подписок конкретного пользователя
+        list_needed_ids = db.query(models.Subscription.subscribed_to_id).filter(
+            models.Subscription.subscriber_id == telegram_id
+        )
+
+        # Фильтр для получения пользователей, на которых подписан конкретный пользователь
+        birthday_query = birthday_query.filter(models.User.telegram_id.in_(list_needed_ids))
+
+    return birthday_query.offset(skip).limit(limit).all()
 
 
 
