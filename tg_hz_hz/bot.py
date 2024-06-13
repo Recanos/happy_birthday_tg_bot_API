@@ -51,14 +51,15 @@ async def send_welcome(message: types.Message):
 @dp.message_handler(commands=['subs'])
 async def get_subs(message: types.Message):
     mes = "Ваши подписки:\n"
-    subscriptions = api.get_employe_subs(int(message.from_user.id))
-    users = api.get_all_users()
-    for sub in subscriptions:
-        users.remove(sub)
+    users = api.get_employe_subs(int(message.from_user.id))
     for user in users:
-        mes+= str(user[0]) + "\n"
+        mes += str(user[0]) + "\n"
 
-    await bot.send_message(message.from_user.id, mes)
+    if users == []:
+        await bot.send_message(message.from_user.id, "Вы пока ни на кого не подписаны!")
+    else:
+
+        await bot.send_message(message.from_user.id, mes)
 
 
 @dp.message_handler(lambda message: message.text == "авторизироваться!")
@@ -95,7 +96,7 @@ async def handle_birthdate(message: types.Message, state: FSMContext):
 async def handle_registration_user(message: types.Message, state: FSMContext):
     await state.finish()
     await message.answer("Поздравляю, вы успешно авторизировались!\n\n"
-                         "Нажмите \subs, чтобы получить ваши текущие подписки\n\n"
+                         "Нажмите /subs, чтобы получить ваши текущие подписки\n\n"
                          "Подпишитесь на группу, чтобы получать уведомления о др:", reply_markup=enter_keyboard)
 
 
@@ -107,19 +108,26 @@ async def get_subscription(message: types.Message, state: FSMContext):
 
         subscriptions = api.get_employe_subs(int(message.from_user.id))
         users = api.get_all_users()
+        users.remove([ message.from_user.username, int(message.from_user.id)])
         for sub in subscriptions:
             users.remove(sub)
         for user in users:
             subscribe_inline_keyboard.add(types.InlineKeyboardButton(text=user[0], callback_data="sub-" + str(user[1])))
 
-        await message.reply("Выберете пользователя на которого хотите подписаться:", reply_markup=subscribe_inline_keyboard)
+        if users == []:
+            await message.reply("Вы подписаны уже на всех пользователей!")
+        else:
+            await message.reply("Выберете пользователя на которого хотите подписаться:", reply_markup=subscribe_inline_keyboard)
     if message.text == "Отписаться от др пользователей":
         unsubscribe_inline_keyboard = types.InlineKeyboardMarkup()
         subs = api.get_employe_subs(message.from_user.id)
         for sub in subs:
             unsubscribe_inline_keyboard.add(
                 types.InlineKeyboardButton(text=sub[0], callback_data="unsub-" + str(sub[1])))
-        await message.reply("Выберете пользователя от которого хотите отписаться:", reply_markup=unsubscribe_inline_keyboard)
+        if subs == []:
+            await bot.send_message(message.from_user.id, "Вы пока ни на кого не подписаны!")
+        else:
+            await message.reply("Выберете пользователя от которого хотите отписаться:", reply_markup=unsubscribe_inline_keyboard)
 
     if message.text == "Подписаться на всех":
         api.subscribe_all(message.from_user.id)
