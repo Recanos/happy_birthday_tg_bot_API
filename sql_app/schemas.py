@@ -29,6 +29,7 @@ class UserCreateSchema(UserBaseSchema):
 class UserSchema(UserBaseSchema):
     id: int
     date_of_birth: datetime
+    subscribers: list[SubscriptionBaseSchema] = []
     subscriptions: list[SubscriptionBaseSchema] = []
 
 

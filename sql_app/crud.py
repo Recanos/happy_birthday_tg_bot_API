@@ -126,6 +126,7 @@ def unsubscribe_all(db: Session, user_telegram_id: int):
             db.delete(subscription)
 
         db.commit()
+        print("hui")
         return subscriptions
     else:
         raise HTTPException(status_code=400, detail="No one to unsubscribe from")

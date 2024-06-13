@@ -24,6 +24,20 @@ class User(Base):
     telegram_id = Column(Integer, unique=True, nullable=False)
     date_of_birth = Column(TIMESTAMP(timezone=True), nullable=False)
 
+    subscribers = relationship(
+        'Subscription',
+        foreign_keys=[Subscription.subscribed_to_id],
+        back_populates="subscribed_to",
+        cascade="all, delete-orphan"
+    )
+
+    subscribed_by = relationship(
+        'Subscription',
+        foreign_keys=[Subscription.subscriber_id],
+        back_populates="subscriber",
+        cascade="all, delete-orphan"
+    )
+
     subscriptions = relationship(
         'Subscription',
         foreign_keys=[Subscription.subscriber_id],

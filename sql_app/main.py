@@ -40,16 +40,17 @@ def create_user(user: schemas.UserCreateSchema, db: Session = Depends(get_db)):
 @app.get("/get_employees", response_model=List[schemas.UserSchema], tags=["Users"])
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """
-    Получение списка пользователей.
+    Получение списка пользователей
     """
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
 
 
 @app.get("/check_happy_birthday", response_model=List[schemas.UserSchema], tags=["Users"])
-def read_users_with_happy_birthday(telegram_id: Optional[int | None] = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_users_with_happy_birthday(telegram_id: Optional[int | None] = None, skip: int = 0, limit: int = 100,
+                                   db: Session = Depends(get_db)):
     """
-    Получение списка пользователей, у которых сегодня день рождения.
+    Получение списка пользователей, у которых сегодня день рождения
     """
     users = crud.get_users_with_happy_birthday(db, telegram_id=telegram_id, skip=skip, limit=limit)
     return users
@@ -58,7 +59,7 @@ def read_users_with_happy_birthday(telegram_id: Optional[int | None] = None, ski
 @app.get("/employee/{user_telegram_id}", response_model=schemas.UserSchema, tags=["Users"])
 def read_user(user_telegram_id: int, db: Session = Depends(get_db)):
     """
-    Получение подробной информации о пользователе.
+    Получение подробной информации о пользователе
     """
     db_user = crud.get_user_by_telegram_id(db, telegram_id=user_telegram_id)
     if db_user is None:
@@ -72,7 +73,7 @@ def create_subscription_for_user(
         subscribed_to_telegram_id: int, subscriber_telegram_id: Annotated[int, Body()], db: Session = Depends(get_db)
 ):
     """
-    Подписка на пользователя.
+    Подписка на пользователя
     """
     try:
         return crud.create_user_subscription(
@@ -87,7 +88,7 @@ def create_subscription_for_user(
 @app.post("/subscribe_all", response_model=List[schemas.SubscriptionSchema], tags=["Subscriptions"])
 def subscribe_to_all_users(user_telegram_id: Annotated[int, Body()], db: Session = Depends(get_db)):
     """
-    Подписка на всех пользователей.
+    Подписка на всех пользователей
     """
     try:
         subscriptions = crud.subscribe_to_all(db, user_telegram_id)
@@ -96,10 +97,10 @@ def subscribe_to_all_users(user_telegram_id: Annotated[int, Body()], db: Session
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.delete("/unsubscribe_all", response_model=List[schemas.SubscriptionSchema], tags=["Subscriptions"])
+@app.delete("/unsubscribe_all", tags=["Subscriptions"])
 def unsubscribe_from_all_users(user_telegram_id: Annotated[int, Body()], db: Session = Depends(get_db)):
     """
-    Отписка от всех пользователей.
+    Отписка от всех пользователей
     """
     try:
         subscriptions = crud.unsubscribe_all(db, user_telegram_id)
@@ -114,7 +115,7 @@ def unsubscribe_from_user(
         subscribed_to_telegram_id: int, subscriber_telegram_id: Annotated[int, Body()], db: Session = Depends(get_db)
 ):
     """
-    Отписка от пользователя.
+    Отписка от пользователя
     """
     try:
         return crud.unsubscribe_from_user(db, subscriber_telegram_id, subscribed_to_telegram_id)
@@ -125,7 +126,7 @@ def unsubscribe_from_user(
 @app.get("/subscriptions/", response_model=List[schemas.SubscriptionSchema], tags=["Subscriptions"])
 def read_subscriptions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """
-    Получение списка подписок.
+    Получение списка подписок
     """
     subscriptions = crud.get_subscriptions(db, skip=skip, limit=limit)
     return subscriptions
@@ -134,7 +135,7 @@ def read_subscriptions(skip: int = 0, limit: int = 100, db: Session = Depends(ge
 @app.delete("/delete_employee/{telegram_id}", response_model=schemas.UserSchema, tags=["Users"])
 def delete_staff(telegram_id: int, db: Session = Depends(get_db)):
     """
-    Удаление пользователя.
+    Удаление пользователя
     """
     try:
         return crud.delete_user(db, telegram_id)
