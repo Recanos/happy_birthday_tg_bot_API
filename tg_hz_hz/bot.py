@@ -93,13 +93,13 @@ async def handle_birthdate(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=Form.registration_user)
 async def handle_registration_user(message: types.Message, state: FSMContext):
-    await Form.subscibe.set()
+    await state.finish()
     await message.answer("Поздравляю, вы успешно авторизировались!\n\n"
                          "Нажмите \subs, чтобы получить ваши текущие подписки\n\n"
                          "Подпишитесь на группу, чтобы получать уведомления о др:", reply_markup=enter_keyboard)
 
-@dp.message_handler(state=Form.subscibe)
-@dp.message_handler(lambda message: message.text in ["Подписаться на др пользователей", "Отписаться от др пользователей"])
+
+@dp.message_handler(lambda message: message.text in ["Подписаться на др пользователей", "Отписаться от др пользователей", "Подписаться на всех", "Отписаться от всех"])
 async def get_subscription(message: types.Message, state: FSMContext):
     if message.text == "Подписаться на др пользователей":
 
