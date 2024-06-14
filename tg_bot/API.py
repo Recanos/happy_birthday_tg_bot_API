@@ -8,7 +8,7 @@ class API:
 
     def create_user(self, name, telegram_id, date_of_birth):
         requests.post(
-            "http://45.141.103.108:8000/employees/",
+            f"{self.BASE_URL}/employees/",
             json={
                 "name": name,
                 "telegram_id": telegram_id,
@@ -18,7 +18,7 @@ class API:
 
     def get_all_users(self):
         result = requests.get(
-            "http://45.141.103.108:8000/get_employees",
+            f"{self.BASE_URL}/get_employees",
             params={"limit": 100, "skip": 0}
         ).json()
 
@@ -28,38 +28,38 @@ class API:
 
     def subscribe_on_user(self, user_id, subscribe_to_id):
         requests.post(
-            f"http://45.141.103.108:8000/subscribe/{subscribe_to_id}",
+            f"{self.BASE_URL}/subscribe/{subscribe_to_id}",
             data=str(user_id)
         )
 
     def unsubscribe_on_user(self, user_id, unsubscribe_to_id):
         requests.delete(
-            f"http://45.141.103.108:8000/unsubscribe/{unsubscribe_to_id}",
+            f"{self.BASE_URL}/unsubscribe/{unsubscribe_to_id}",
             data=str(user_id)
         )
 
     def subscribe_all(self, user_id):
         requests.post(
-            "http://45.141.103.108:8000/subscribe_all",
+            f"{self.BASE_URL}/subscribe_all",
             data=str(user_id)
         )
 
     def unsubscribe_all(self, user_id):
         requests.delete(
-            "http://45.141.103.108:8000/unsubscribe_all",
+            f"{self.BASE_URL}/unsubscribe_all",
             data=str(user_id)
         )
 
     def check_happy_birthday(self):
         birthday = requests.get(
-            "http://45.141.103.108:8000/check_happy_birthday"
+            f"{self.BASE_URL}/check_happy_birthday"
         ).json()
 
         return birthday
 
     def get_employe_subs(self, telegram_id):
         employee = requests.get(
-            f"http://45.141.103.108:8000/employee/{telegram_id}"
+            f"{self.BASE_URL}/employee/{telegram_id}"
         ).json()
 
         employee_subs = employee["subscriptions"]
@@ -68,7 +68,7 @@ class API:
             result.append(
                 [
                     requests.get(
-                        f"""http://45.141.103.108:8000/employee/{subs["subscribed_to_id"]}"""
+                        f"""{self.BASE_URL}/employee/{subs["subscribed_to_id"]}"""
                     ).json()["name"],
                     subs["subscribed_to_id"]
 

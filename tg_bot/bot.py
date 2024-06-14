@@ -12,7 +12,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 from API import API
 
-API_TOKEN = '7092569520:AAFIsBGBzy1myLB_fqn0UxoUjOTfaQQrSoY'
+API_TOKEN = '6051028622:AAHazo0jubESQ0PxLCYWGKtMVHKi5pV_1nM'
 
 bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
@@ -42,7 +42,7 @@ scheduler.add_job(scheduled_task, "cron", hour=12, minute=29)
 @dp.message_handler(commands=['start', 'help'])
 async def send_welcome(message: types.Message):
     await message.reply(
-        "Привет! Я бот помошник, который будет тебе напоминать о днях рождения!\n\nЧтобы начать, нажми кнопку авторизироваться ниже:",
+        "Привет! Я бот помошник, который будет тебе напоминать о днях рождения!🥳\n\nЧтобы начать, нажми кнопку авторизироваться ниже:",
         reply_markup=start_keyboard
     )
 
@@ -67,7 +67,7 @@ async def send_button_response(message: types.Message):
     users = api.get_all_users()
     if [message.from_user.username, int(message.from_user.id)] in users:
         await Form.registration_user.set()
-        await message.answer("Вы уже авторизированы!\n\n"
+        await message.answer("Вы уже авторизированы!🔥\n\n"
                              "Нажмите /subs, чтобы получить ваши текущие подписки\n\n"
                              "Подпишитесь на группу, чтобы получать уведомления о др:", reply_markup=enter_keyboard)
     else:
