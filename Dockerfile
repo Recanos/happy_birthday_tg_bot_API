@@ -24,4 +24,4 @@ COPY . /app
 ENV PYTHONPATH=/app
 
 # Команда для запуска FastAPI и бота
-CMD ["sh", "-c", "uvicorn fast_api.main:app --host 0.0.0.0 --port 8000 & python3 tg_bot/bot.py"]
+CMD ["sh", "-c", "uvicorn fast_api.main:app --host 45.141.103.108 --port 8000 & python3 tg_bot/bot.py"]
