@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: fastapi_and_bot
+    ports:
+      - "8000:8000"  # Проброс порта FastAPI на хост-машину
+    volumes:
+      - .:/app  # Проброс текущей директории в контейнер
+    environment:
+      - PYTHONPATH=/app  # Установка переменной окружения для Python пути
