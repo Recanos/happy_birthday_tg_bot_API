@@ -108,10 +108,10 @@ async def handle_registration_user(message: types.Message, state: FSMContext):
 
 
 @dp.message_handler(
-    lambda message: message.text in ["Подписаться на др пользователей", "Отписаться от др пользователей",
+    lambda message: message.text in ["Подписаться на пользователя", "Отписаться от пользователя",
                                      "Подписаться на всех", "Отписаться от всех"])
 async def get_subscription(message: types.Message, state: FSMContext):
-    if message.text == "Подписаться на др пользователей":
+    if message.text == "Подписаться на пользователя":
 
         subscribe_inline_keyboard = types.InlineKeyboardMarkup(resize_keyboard=True)
 
@@ -128,7 +128,7 @@ async def get_subscription(message: types.Message, state: FSMContext):
         else:
             await message.reply("Выберете пользователя на которого хотите подписаться:",
                                 reply_markup=subscribe_inline_keyboard)
-    if message.text == "Отписаться от др пользователей":
+    if message.text == "Отписаться от пользователя":
         unsubscribe_inline_keyboard = types.InlineKeyboardMarkup()
         subs = api.get_employe_subs(message.from_user.id)
         for sub in subs:
