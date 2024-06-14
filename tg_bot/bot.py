@@ -12,7 +12,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 from API import API
 
-API_TOKEN = '6051028622:AAHazo0jubESQ0PxLCYWGKtMVHKi5pV_1nM'
+API_TOKEN = '7092569520:AAFIsBGBzy1myLB_fqn0UxoUjOTfaQQrSoY'
 
 bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
@@ -42,7 +42,7 @@ scheduler.add_job(scheduled_task, "cron", hour=12, minute=29)
 @dp.message_handler(commands=['start', 'help'])
 async def send_welcome(message: types.Message):
     await message.reply(
-        "Привет! Я бот помошник, который будет тебе напоминать о днях рождения!🥳\n\nЧтобы начать, нажми кнопку авторизироваться ниже:",
+        "Привет! Я бот помошник, который будет тебе напоминать о днях рождения!\n\nЧтобы начать, нажми кнопку авторизироваться ниже:",
         reply_markup=start_keyboard
     )
 
@@ -67,9 +67,9 @@ async def send_button_response(message: types.Message):
     users = api.get_all_users()
     if [message.from_user.username, int(message.from_user.id)] in users:
         await Form.registration_user.set()
-        await message.answer("Вы уже авторизированы!🔥\n\n"
+        await message.answer("Вы уже авторизированы!\n\n"
                              "Нажмите /subs, чтобы получить ваши текущие подписки\n\n"
-                             "Подпишитесь на группу, чтобы получать уведомления о др:", reply_markup=enter_keyboard)
+                             "Подпишитесь на группу, чтобы получать уведомления о др: https://t.me/+bgef6lPqCN8yN2Uy", reply_markup=enter_keyboard)
     else:
         await Form.waiting_for_date_of_birth.set()
         await message.reply("Напишите вашу дату рождения(в формате ДД.ММ.ГГГГ.): ", reply_markup=ReplyKeyboardRemove())
@@ -108,10 +108,10 @@ async def handle_registration_user(message: types.Message, state: FSMContext):
 
 
 @dp.message_handler(
-    lambda message: message.text in ["Подписаться на пользователя", "Отписаться от пользователя",
+    lambda message: message.text in ["Подписаться на др пользователей", "Отписаться от др пользователей",
                                      "Подписаться на всех", "Отписаться от всех"])
 async def get_subscription(message: types.Message, state: FSMContext):
-    if message.text == "Подписаться на пользователя":
+    if message.text == "Подписаться на др пользователей":
 
         subscribe_inline_keyboard = types.InlineKeyboardMarkup(resize_keyboard=True)
 
@@ -128,7 +128,7 @@ async def get_subscription(message: types.Message, state: FSMContext):
         else:
             await message.reply("Выберете пользователя на которого хотите подписаться:",
                                 reply_markup=subscribe_inline_keyboard)
-    if message.text == "Отписаться от пользователя":
+    if message.text == "Отписаться от др пользователей":
         unsubscribe_inline_keyboard = types.InlineKeyboardMarkup()
         subs = api.get_employe_subs(message.from_user.id)
         for sub in subs:
