@@ -12,7 +12,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 from API import API
 
-API_TOKEN = '7092569520:AAFIsBGBzy1myLB_fqn0UxoUjOTfaQQrSoY'
+API_TOKEN = '6051028622:AAHazo0jubESQ0PxLCYWGKtMVHKi5pV_1nM'
 
 bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
