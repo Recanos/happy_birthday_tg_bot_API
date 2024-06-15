@@ -36,7 +36,7 @@ async def scheduled_task():
                                    text=f"""У пользователя с ником {bd["name"]} сегодня день рождения!\nНе забудьте поздравить!""")
 
 
-scheduler.add_job(scheduled_task, "cron", hour=12, minute=29)
+scheduler.add_job(scheduled_task, "cron", hour=9, minute=00) #Зависит от времени на устройстве, если лежит на сервере, то это будет по utc (12 по МСК)
 
 
 @dp.message_handler(commands=['start', 'help'])
