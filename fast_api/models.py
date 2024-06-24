@@ -45,9 +45,3 @@ class User(Base):
         cascade="all, delete-orphan"
     )
 
-    subscribed_by = relationship(
-        'Subscription',
-        foreign_keys=[Subscription.subscribed_to_id],
-        back_populates="subscribed_to",
-        cascade="all, delete-orphan"
-    )

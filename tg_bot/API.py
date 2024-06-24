@@ -78,11 +78,4 @@ class API:
         return result
 
 
-session = API()
-print(session.get_employe_subs(2))
-api = API()
-users = api.get_all_users()
-print(users.remove(session.get_employe_subs(2)[0]))
-print(users)
-
 

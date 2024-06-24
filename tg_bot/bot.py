@@ -24,19 +24,19 @@ scheduler.start()
 
 api = API()
 
-
 async def scheduled_task():
     bithdays = api.check_happy_birthday()
     for bd in bithdays:
         subscribers = bd["subscribers"]
         for sub in subscribers:
             await bot.send_message(chat_id=int(sub["subscriber_id"]),
-                             text=f"""У пользователя с ником {bd["name"]} сегодня день рождения!\nНе забудьте поздравить!""")
-        await bot.send_message(chat_id=-1002208838775,
                                    text=f"""У пользователя с ником {bd["name"]} сегодня день рождения!\nНе забудьте поздравить!""")
+        await bot.send_message(chat_id=-1002208838775,
+                               text=f"""У пользователя с ником {bd["name"]} сегодня день рождения!\nНе забудьте поздравить!""")
 
 
-scheduler.add_job(scheduled_task, "cron", hour=9, minute=00) #Зависит от времени на устройстве, если лежит на сервере, то это будет по utc (12 по МСК)
+scheduler.add_job(scheduled_task, "cron", hour=9,
+                  minute=00)  # Зависит от времени на устройстве, если лежит на сервере, то это будет по utc (12 по МСК)
 
 
 @dp.message_handler(commands=['start', 'help'])
@@ -45,7 +45,6 @@ async def send_welcome(message: types.Message):
         "Привет! Я бот помошник, который будет тебе напоминать о днях рождения!\n\nЧтобы начать, нажми кнопку авторизироваться ниже:",
         reply_markup=start_keyboard
     )
-
 
 
 @dp.message_handler(commands=['subs'])
@@ -69,7 +68,8 @@ async def send_button_response(message: types.Message):
         await Form.registration_user.set()
         await message.answer("Вы уже авторизированы!\n\n"
                              "Нажмите /subs, чтобы получить ваши текущие подписки\n\n"
-                             "Подпишитесь на группу, чтобы получать уведомления о др: https://t.me/+bgef6lPqCN8yN2Uy", reply_markup=enter_keyboard)
+                             "Подпишитесь на группу, чтобы получать уведомления о др: https://t.me/+bgef6lPqCN8yN2Uy",
+                             reply_markup=enter_keyboard)
     else:
         await Form.waiting_for_date_of_birth.set()
         await message.reply("Напишите вашу дату рождения(в формате ДД.ММ.ГГГГ.): ", reply_markup=ReplyKeyboardRemove())
