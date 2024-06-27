@@ -1,47 +1,45 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP
-from sqlalchemy.orm import relationship
 from .database import Base
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
-# Создайте модель для связующей таблицы
 class Subscription(Base):
     __tablename__ = 'subscriptions'
 
-    id = Column(Integer, primary_key=True)
-    subscriber_id = Column(Integer, ForeignKey('users.telegram_id'))
-    subscribed_to_id = Column(Integer, ForeignKey('users.telegram_id'))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    subscriber_id: Mapped[int] = mapped_column(ForeignKey('users.telegram_id'))
+    subscribed_to_id: Mapped[int] = mapped_column(ForeignKey('users.telegram_id'))
 
     # Определяем отношения с User, используя back_populates для автоматического подтягивания связанных данных
-    subscriber = relationship("User", foreign_keys=[subscriber_id], back_populates="subscriptions")
-    subscribed_to = relationship("User", foreign_keys=[subscribed_to_id], back_populates="subscribed_by")
+    subscriber: Mapped["User"] = relationship(foreign_keys=[subscriber_id], back_populates="subscriptions")
+    subscribed_to: Mapped["User"] = relationship(foreign_keys=[subscribed_to_id], back_populates="subscribed_by")
 
 
 class User(Base):
     __tablename__ = 'users'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    telegram_id = Column(Integer, unique=True, nullable=False)
-    date_of_birth = Column(TIMESTAMP(timezone=True), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    telegram_id: Mapped[int] = mapped_column(unique=True, nullable=False)
+    date_of_birth: Mapped[TIMESTAMP] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
 
-    subscribers = relationship(
+    subscribers: Mapped[list["Subscription"]] = relationship(
         'Subscription',
         foreign_keys=[Subscription.subscribed_to_id],
         back_populates="subscribed_to",
         cascade="all, delete-orphan"
     )
 
-    subscribed_by = relationship(
+    subscribed_by: Mapped[list["Subscription"]] = relationship(
         'Subscription',
         foreign_keys=[Subscription.subscriber_id],
         back_populates="subscriber",
         cascade="all, delete-orphan"
     )
 
-    subscriptions = relationship(
+    subscriptions: Mapped[list["Subscription"]] = relationship(
         'Subscription',
         foreign_keys=[Subscription.subscriber_id],
         back_populates="subscriber",
         cascade="all, delete-orphan"
     )
-
