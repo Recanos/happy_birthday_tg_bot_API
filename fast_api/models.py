@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP
-from .database import Base
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
+class Base(DeclarativeBase):
+    pass
 
 class Subscription(Base):
     __tablename__ = 'subscriptions'

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends, status, Body
 from sqlalchemy.orm import Session
 from typing import List, Annotated, Optional
-
+from .models import Base
 from . import crud, models, schemas
 from .database import SessionLocal, engine
 
@@ -24,7 +24,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
 
 @app.post("/employees/", response_model=schemas.UserSchema, status_code=status.HTTP_201_CREATED, tags=["Users"])
 def create_user(user: schemas.UserCreateSchema, db: Session = Depends(get_db)):
@@ -109,7 +108,7 @@ def unsubscribe_from_all_users(user_telegram_id: Annotated[int, Body()], db: Ses
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.delete("/unsubscribe/{subscribed_to_telegram_id}", response_model=schemas.SubscriptionSchema,
+@app.delete("/unsubscribe/{subscribed_to_telegram_id}",
             tags=["Subscriptions"])
 def unsubscribe_from_user(
         subscribed_to_telegram_id: int, subscriber_telegram_id: Annotated[int, Body()], db: Session = Depends(get_db)
@@ -132,7 +131,7 @@ def read_subscriptions(skip: int = 0, limit: int = 100, db: Session = Depends(ge
     return subscriptions
 
 
-@app.delete("/delete_employee/{telegram_id}", response_model=schemas.UserSchema, tags=["Users"])
+@app.delete("/delete_employee/{telegram_id}", tags=["Users"])
 def delete_staff(telegram_id: int, db: Session = Depends(get_db)):
     """
     Удаление пользователя
