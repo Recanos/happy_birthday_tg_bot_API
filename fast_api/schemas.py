@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from datetime import datetime
 from pydantic import BaseModel
 
@@ -32,3 +33,39 @@ class UserSchema(UserBaseSchema):
 class SubscriptionSchema(SubscriptionBaseSchema):
     subscriber: UserBaseSchema
     subscribed_to: UserBaseSchema
+=======
+from datetime import datetime
+from pydantic import BaseModel
+
+
+class UserBaseSchema(BaseModel):
+    name: str
+    telegram_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class SubscriptionBaseSchema(BaseModel):
+    subscriber_id: int
+    subscribed_to_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class UserCreateSchema(UserBaseSchema):
+    date_of_birth: datetime
+
+
+class UserSchema(UserBaseSchema):
+    id: int
+    date_of_birth: datetime
+    subscribers: list[SubscriptionBaseSchema] = []
+    subscriptions: list[SubscriptionBaseSchema] = []
+
+
+class SubscriptionSchema(SubscriptionBaseSchema):
+    subscriber: UserBaseSchema
+    subscribed_to: UserBaseSchema
+>>>>>>> 523e111b3b7e89f078dd8941e429c20216035a24

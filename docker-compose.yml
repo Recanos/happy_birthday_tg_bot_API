@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 version: '3.8'
 services:
   fast_api:
@@ -20,4 +21,28 @@ services:
 
 networks:
   app-network:
+=======
+version: '3.8'
+services:
+  fast_api:
+    build: ./fast_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./fast_api:/fast_api
+    networks:
+      - app-network
+
+  tg_bot:
+    build: ./tg_bot
+    depends_on:
+      - fast_api
+    volumes:
+      - ./tg_bot:/tg_bot
+    networks:
+      - app-network
+
+networks:
+  app-network:
+>>>>>>> 523e111b3b7e89f078dd8941e429c20216035a24
     driver: bridge
