@@ -1,40 +1,42 @@
 from datetime import datetime
-from sqlalchemy import extract, select, delete, and_
+from sqlalchemy import extract, delete, and_
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
-from . import models, schemas
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from . import schemas
+from . import models
 from fastapi import HTTPException
 from sqlalchemy import select
 
 
-def create_user(db: Session, user: schemas.UserCreateSchema) -> models.User:
+async def create_user(session: AsyncSession, user: schemas.UserCreateSchema) -> models.User:
     db_user = models.User(name=user.name, telegram_id=user.telegram_id, date_of_birth=user.date_of_birth)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+    session.add(db_user)
+    await session.commit()
+    await session.refresh(db_user)
     return db_user
 
 
-def get_user_by_telegram_name(db: Session, user_telegram_name: str) -> models.User:
+async def get_user_by_telegram_name(session: AsyncSession, user_telegram_name: str) -> models.User:
     stmt = select(models.User).where(models.User.name == user_telegram_name)
-    result = db.execute(stmt).scalar_one_or_none()
+    result = (await session.execute(stmt)).scalar_one_or_none()
     return result
 
 
-def get_user_by_telegram_id(db: Session, telegram_id: int) -> models.User:
+async def get_user_by_telegram_id(session: AsyncSession, telegram_id: int) -> models.User:
     stmt = select(models.User).where(models.User.telegram_id == telegram_id)
-    result = db.execute(stmt).scalar_one_or_none()
+    result = (await session.execute(stmt)).scalar_one_or_none()
     return result
 
 
-def get_users(db: Session, skip: int = 0, limit: int = 100) -> list[models.User]:
+async def get_users(session: AsyncSession, skip: int = 0, limit: int = 100) -> list[models.User]:
     stmt = select(models.User).offset(skip).limit(limit)
-    result = db.execute(stmt).scalars().all()
-    return result
+    result = await session.execute(stmt)
+    return result.scalars().all()
 
 
-def get_users_with_happy_birthday(db: Session, telegram_id: int | None = None, skip: int = 0, limit: int = 100) -> list[
-    models.User]:
+async def get_users_with_happy_birthday(session: AsyncSession, telegram_id: int | None = None, skip: int = 0,
+                                        limit: int = 100) -> list[models.User]:
     today = datetime.utcnow()
 
     stmt = select(models.User).where(
@@ -44,21 +46,22 @@ def get_users_with_happy_birthday(db: Session, telegram_id: int | None = None, s
 
     if telegram_id is not None:
         subquery = select(models.Subscription.subscribed_to_id).where(
-            models.Subscription.subscriber_id == telegram_id).subquery()
+            models.Subscription.subscriber_id == telegram_id
+        ).subquery()
 
         stmt = stmt.where(models.User.telegram_id.in_(subquery))
 
     stmt = stmt.offset(skip).limit(limit)
-    result = db.execute(stmt).scalars().all()
-    return result
+    result = await session.execute(stmt)
+    return result.scalars().all()
 
 
-def create_user_subscription(db: Session, subscribed_to_telegram_id: int,
-                             subscriber_telegram_id: int) -> models.Subscription:
+async def create_user_subscription(session: AsyncSession, subscribed_to_telegram_id: int,
+                                   subscriber_telegram_id: int) -> models.Subscription:
     stmt_user_check = select(models.User).where(
         models.User.telegram_id.in_([subscriber_telegram_id, subscribed_to_telegram_id])
     )
-    users = db.execute(stmt_user_check).scalars().all()
+    users = (await session.execute(stmt_user_check)).scalars().all()
 
     if len(users) != 2:
         raise HTTPException(status_code=400, detail="Subscriber or subscribed employee not found")
@@ -69,36 +72,34 @@ def create_user_subscription(db: Session, subscribed_to_telegram_id: int,
     if subscriber == subscribed_to:
         raise HTTPException(status_code=400, detail="Unable to follow yourself")
 
-    # Подзапрос для проверки на уже существующую подписку
     stmt_sub_check = select(models.Subscription).where(
         models.Subscription.subscriber_id == subscriber_telegram_id,
         models.Subscription.subscribed_to_id == subscribed_to_telegram_id
     )
-    sub_repeat = db.execute(stmt_sub_check).scalars().first()
+    sub_repeat = (await session.execute(stmt_sub_check)).scalars().first()
 
     if sub_repeat:
         raise HTTPException(status_code=400, detail="Already subscribed")
 
-    # Создание новой подписки внутри транзакции
     db_subscription = models.Subscription(
-        subscriber_id=subscriber.telegram_id,
-        subscribed_to_id=subscribed_to.telegram_id
+        subscriber_id=subscriber_telegram_id,
+        subscribed_to_id=subscribed_to_telegram_id
     )
 
     try:
-        db.add(db_subscription)
-        db.commit()
-        db.refresh(db_subscription)
+        session.add(db_subscription)
+        await session.commit()
+        await session.refresh(db_subscription)
     except:
-        db.rollback()
+        await session.rollback()
         raise
 
     return db_subscription
 
 
-def subscribe_to_all(db: Session, user_telegram_id: int):
+async def subscribe_to_all(session: AsyncSession, user_telegram_id: int) -> list[models.Subscription]:
     user_stmt = select(models.User).where(models.User.telegram_id == user_telegram_id)
-    user = db.execute(user_stmt).scalars().first()
+    user = (await session.execute(user_stmt)).scalars().first()
     if not user:
         raise HTTPException(status_code=400, detail="Employee not found")
 
@@ -112,7 +113,7 @@ def subscribe_to_all(db: Session, user_telegram_id: int):
             models.User.telegram_id.not_in(existing_subs_stmt)
         )
     )
-    all_users_except_current = db.execute(new_users_stmt).scalars().all()
+    all_users_except_current = (await session.execute(new_users_stmt)).scalars().all()
 
     if not all_users_except_current:
         raise HTTPException(status_code=400, detail="Nothing to subscribe")
@@ -124,39 +125,42 @@ def subscribe_to_all(db: Session, user_telegram_id: int):
         ) for other_user in all_users_except_current
     ]
 
-    db.bulk_save_objects(subscriptions)
+    session.add_all(subscriptions)
     try:
-        db.commit()
+        await session.commit()
     except IntegrityError:
-        db.rollback()
+        await session.rollback()
         raise HTTPException(status_code=400, detail="There was an error committing the subscriptions to the database")
-    return db.query(models.Subscription).filter(models.Subscription.subscriber_id == user.telegram_id).all()
+    return (await session.execute(
+        select(models.Subscription).where(models.Subscription.subscriber_id == user.telegram_id)
+    )).scalars().all()
 
 
-def unsubscribe_all(db: Session, user_telegram_id: int):
+async def unsubscribe_all(session: AsyncSession, user_telegram_id: int) -> str:
     user_stmt = select(models.User).where(models.User.telegram_id == user_telegram_id)
-    user = db.execute(user_stmt).scalars().first()
+    user = (await session.execute(user_stmt)).scalars().first()
     if not user:
         raise HTTPException(status_code=400, detail="Employee not found")
 
     sub_del_stmt = delete(models.Subscription).where(
         models.Subscription.subscriber_id == user.telegram_id
     )
-
-    result = db.execute(sub_del_stmt)
+    result = await session.execute(sub_del_stmt)
 
     if result.rowcount > 0:
-        db.commit()
+        await session.commit()
         return f"Unsubscribed from {result.rowcount} users."
     else:
-        db.rollback()
+        await session.rollback()
         raise HTTPException(status_code=400, detail="No one to unsubscribe from")
 
-def unsubscribe_from_user(db: Session, subscriber_telegram_id: int, subscribed_to_telegram_id: int):
 
+async def unsubscribe_from_user(session: AsyncSession, subscriber_telegram_id: int,
+                                subscribed_to_telegram_id: int) -> str:
     users_stmt = select(models.User).where(
-        models.User.telegram_id.in_([subscriber_telegram_id, subscribed_to_telegram_id]))
-    users = db.execute(users_stmt).scalars().all()
+        models.User.telegram_id.in_([subscriber_telegram_id, subscribed_to_telegram_id])
+    )
+    users = (await session.execute(users_stmt)).scalars().all()
 
     if len(users) != 2:
         raise HTTPException(status_code=400, detail="Subscriber or subscribed employee not found")
@@ -165,30 +169,37 @@ def unsubscribe_from_user(db: Session, subscriber_telegram_id: int, subscribed_t
         models.Subscription.subscriber_id == subscriber_telegram_id,
         models.Subscription.subscribed_to_id == subscribed_to_telegram_id
     )
-
-    result = db.execute(sub_del_stmt)
+    result = await session.execute(sub_del_stmt)
 
     if result.rowcount > 0:
-        db.commit()
-        return f"Unsubscribed from user with Telegram ID {subscribed_to_telegram_id}."
+        await session.commit()
+        return f"{subscriber_telegram_id} Unsubscribed from user with Telegram ID {subscribed_to_telegram_id}"
     else:
-        db.rollback()
+        await session.rollback()
         raise HTTPException(status_code=400, detail="No such subscription")
-def get_subscriptions(db: Session, skip: int = 0, limit: int = 100) -> list[models.Subscription]:
-    stmt = select(models.Subscription).offset(skip).limit(limit).all()
-    result = db.execute(stmt).scalars().all()
-    return result
 
 
-def delete_user(db: Session, telegram_id: int):
-    db_user = db.query(models.User).filter(models.User.telegram_id == telegram_id).first()
+async def get_subscriptions(session: AsyncSession, skip: int = 0, limit: int = 100) -> list[models.Subscription]:
+    stmt = select(models.Subscription).offset(skip).limit(limit)
+    result = await session.execute(stmt)
+    return result.scalars().all()
+
+
+async def delete_user(session: AsyncSession, telegram_id: int) -> schemas.UserSchema:
+    db_user = (await session.execute(
+        select(models.User).where(models.User.telegram_id == telegram_id)
+    )).scalars().first()
     if db_user:
         user_data = {
             "id": db_user.id,
             "telegram_id": db_user.telegram_id,
             "name": db_user.name,
+            "date_of_birth": db_user.date_of_birth,
+            "subscribers": db_user.subscribers,
+            "subscribed_by": db_user.subscribed_by
+
         }
-        db.delete(db_user)
-        db.commit()
+        await session.delete(db_user)
+        await session.commit()
         return user_data
     raise HTTPException(status_code=400, detail="Employee not found")

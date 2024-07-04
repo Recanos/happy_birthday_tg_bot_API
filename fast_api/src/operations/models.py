@@ -11,9 +11,8 @@ class Subscription(Base):
     subscriber_id: Mapped[int] = mapped_column(ForeignKey('users.telegram_id'))
     subscribed_to_id: Mapped[int] = mapped_column(ForeignKey('users.telegram_id'))
 
-    # Определяем отношения с User, используя back_populates для автоматического подтягивания связанных данных
-    subscriber: Mapped["User"] = relationship(foreign_keys=[subscriber_id], back_populates="subscriptions")
-    subscribed_to: Mapped["User"] = relationship(foreign_keys=[subscribed_to_id], back_populates="subscribed_by")
+    subscriber: Mapped["User"] = relationship(foreign_keys=[subscriber_id], back_populates="subscriptions", lazy="selectin")
+    subscribed_to: Mapped["User"] = relationship(foreign_keys=[subscribed_to_id], back_populates="subscribed_by", lazy="selectin")
 
 
 class User(Base):
@@ -28,19 +27,22 @@ class User(Base):
         'Subscription',
         foreign_keys=[Subscription.subscribed_to_id],
         back_populates="subscribed_to",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        lazy="selectin"
     )
 
     subscribed_by: Mapped[list["Subscription"]] = relationship(
         'Subscription',
         foreign_keys=[Subscription.subscriber_id],
         back_populates="subscriber",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        lazy="selectin"
     )
 
     subscriptions: Mapped[list["Subscription"]] = relationship(
         'Subscription',
         foreign_keys=[Subscription.subscriber_id],
         back_populates="subscriber",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        lazy="selectin"
     )
